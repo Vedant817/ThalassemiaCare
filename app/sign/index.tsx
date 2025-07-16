@@ -11,12 +11,13 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from '../context/AuthContext';
 
 export default function SignInScreen() {
-  const { signIn, error, isLoading } = useAuth();
+  const { signIn, error } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Animation shared values
   const titleOpacity = useSharedValue(0);
@@ -41,6 +42,7 @@ export default function SignInScreen() {
   useEffect(() => {
     if (error) {
       Alert.alert('Sign In Error', error);
+      setIsSubmitting(false); // Reset submitting state on error
     }
   }, [error]);
 
@@ -60,8 +62,13 @@ export default function SignInScreen() {
     transform: [{ translateY: buttonTranslateY.value }],
   }));
 
-  const handleSignIn = () => {
-    signIn({ email, password });
+  const handleSignIn = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    await signIn({ email, password });
+    // No need to set isSubmitting back to false here,
+    // because the screen will unmount on successful login.
+    // The error effect will handle failure cases.
   };
 
   const handleSignUp = () => {
@@ -113,14 +120,14 @@ export default function SignInScreen() {
         <Animated.View style={[styles.footer, buttonAnimatedStyle]}>
           <Pressable
             onPress={handleSignIn}
-            disabled={isLoading}
+            disabled={isSubmitting}
             style={({ pressed }) => [
               styles.signInButton,
-              (pressed || isLoading) && styles.buttonPressed,
+              (pressed || isSubmitting) && styles.buttonPressed,
             ]}
           >
             <ThemedText style={styles.signInButtonText}>
-              {isLoading ? 'Signing In...' : 'Sign In'}
+              {isSubmitting ? 'Signing In...' : 'Sign In'}
             </ThemedText>
           </Pressable>
           <Pressable onPress={handleSignUp} style={styles.signUpLink}>
