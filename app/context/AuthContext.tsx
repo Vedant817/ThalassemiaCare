@@ -2,8 +2,8 @@ import { router, useSegments } from 'expo-router';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
 
-const API_URL = 'http://localhost:3000/api';
-const TOKEN_KEY = 'my-jwt';
+const API_URL = process.env.API_URL;
+const TOKEN_KEY = process.env.JWT_SECRET;
 
 interface AuthContextType {
   signIn: (data: any) => Promise<void>;
@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const loadToken = async () => {
-      const token = await SecureStore.getItemAsync(TOKEN_KEY);
+      const token = await SecureStore.getItemAsync(TOKEN_KEY!);
       if (token) {
         // Here you might want to verify the token with your backend
         // For simplicity, we'll just assume the token is valid
@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const inAuthGroup = segments[0] === 'sign';
 
     if (user && inAuthGroup) {
-      router.replace('/home');
+      router.replace('/home' as any);
     } else if (!user && segments[0] !== 'sign') {
       router.replace('/sign');
     }
@@ -76,9 +76,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const { token, data: { user: userData } } = result;
       
-      await SecureStore.setItemAsync(TOKEN_KEY, token);
+      await SecureStore.setItemAsync(TOKEN_KEY!, token);
       setUser(userData);
-      router.replace('/home');
+      router.replace('/home' as any);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn: (data) => handleAuth('signin', data),
     signUp: (data) => handleAuth('signup', data),
     signOut: async () => {
-      await SecureStore.deleteItemAsync(TOKEN_KEY);
+      await SecureStore.deleteItemAsync(TOKEN_KEY!);
       setUser(null);
       router.replace('/sign');
     },
