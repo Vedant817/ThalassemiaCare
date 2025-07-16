@@ -14,10 +14,11 @@ import { ThemedView } from '@/components/ThemedView';
 import { useAuth } from '../context/AuthContext';
 
 export default function SignUpScreen() {
-  const { signUp, error, isLoading } = useAuth();
+  const { signUp, error } = useAuth();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Animation shared values
   const titleOpacity = useSharedValue(0);
@@ -42,6 +43,7 @@ export default function SignUpScreen() {
   useEffect(() => {
     if (error) {
       Alert.alert('Sign Up Error', error);
+      setIsSubmitting(false); // Reset submitting state on error
     }
   }, [error]);
 
@@ -61,8 +63,13 @@ export default function SignUpScreen() {
     transform: [{ translateY: buttonTranslateY.value }],
   }));
 
-  const handleSignUp = () => {
-    signUp({ fullName, email, password });
+  const handleSignUp = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    await signUp({ fullName, email, password });
+    // No need to set isSubmitting back to false here,
+    // because the screen will unmount on successful login.
+    // The error effect will handle failure cases.
   };
 
   const handleSignIn = () => {
@@ -125,14 +132,14 @@ export default function SignUpScreen() {
         <Animated.View style={[styles.footer, buttonAnimatedStyle]}>
           <Pressable
             onPress={handleSignUp}
-            disabled={isLoading}
+            disabled={isSubmitting}
             style={({ pressed }) => [
               styles.signUpButton,
-              (pressed || isLoading) && styles.buttonPressed,
+              (pressed || isSubmitting) && styles.buttonPressed,
             ]}
           >
             <ThemedText style={styles.signUpButtonText}>
-              {isLoading ? 'Creating Account...' : 'Sign Up'}
+              {isSubmitting ? 'Creating Account...' : 'Sign Up'}
             </ThemedText>
           </Pressable>
           <Pressable onPress={handleSignIn} style={styles.signInLink}>
