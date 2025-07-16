@@ -1,75 +1,192 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
+import { StyleSheet, Pressable, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withDelay,
+} from 'react-native-reanimated';
+import { useEffect } from 'react';
+import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
 export default function HomeScreen() {
+  // Animation shared values
+  const titleOpacity = useSharedValue(0);
+  const titleTranslateY = useSharedValue(30);
+  const subtitleOpacity = useSharedValue(0);
+  const subtitleTranslateY = useSharedValue(30);
+  const buttonOpacity = useSharedValue(0);
+  const buttonTranslateY = useSharedValue(50);
+  const iconScale = useSharedValue(0.5);
+
+  // Trigger animations on component mount
+  useEffect(() => {
+    titleOpacity.value = withDelay(200, withSpring(1));
+    titleTranslateY.value = withDelay(200, withSpring(0));
+
+    subtitleOpacity.value = withDelay(400, withSpring(1));
+    subtitleTranslateY.value = withDelay(400, withSpring(0));
+
+    buttonOpacity.value = withDelay(600, withSpring(1));
+    buttonTranslateY.value = withDelay(600, withSpring(0));
+
+    iconScale.value = withDelay(0, withSpring(1, { damping: 12, stiffness: 100 }));
+  }, []);
+
+  // Animated styles
+  const titleAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: titleOpacity.value,
+    transform: [{ translateY: titleTranslateY.value }],
+  }));
+
+  const subtitleAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: subtitleOpacity.value,
+    transform: [{ translateY: subtitleTranslateY.value }],
+  }));
+
+  const buttonAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: buttonOpacity.value,
+    transform: [{ translateY: buttonTranslateY.value }],
+  }));
+
+  const iconAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: iconScale.value }],
+  }));
+
+  const handleGetStarted = () => {
+    router.push('/sign');
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <ThemedView style={styles.container}>
+      <LinearGradient
+        colors={['#E0F7FA', '#E1F5FE', '#F1F8E9']}
+        style={styles.gradientBackground}
+      />
+      <View style={styles.contentContainer}>
+        <View style={styles.header}>
+          <Animated.View style={iconAnimatedStyle}>
+            <Ionicons name="medical-outline" size={80} color="#B91C1C" />
+          </Animated.View>
+          <ThemedText type="title" style={styles.headerText}>
+            ThalassemiaCare
+          </ThemedText>
+        </View>
+
+        <View style={styles.mainContent}>
+          <Animated.View style={titleAnimatedStyle}>
+            <ThemedText type="title" style={styles.title}>
+              Welcome to a Community of Hope
+            </ThemedText>
+          </Animated.View>
+          <Animated.View style={subtitleAnimatedStyle}>
+            <ThemedText style={styles.subtitle}>
+              Connecting thalassemia patients with voluntary blood donors, providing support and saving lives.
+            </ThemedText>
+          </Animated.View>
+        </View>
+
+        <Animated.View style={[styles.footer, buttonAnimatedStyle]}>
+          <Pressable
+            onPress={handleGetStarted}
+            style={({ pressed }) => [
+              styles.getStartedButton,
+              pressed && styles.buttonPressed,
+            ]}
+          >
+            <ThemedText style={styles.getStartedButtonText}>
+              Get Started <Ionicons name="arrow-forward-circle" size={20} color="white" />
+            </ThemedText>
+          </Pressable>
+        </Animated.View>
+      </View>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+  },
+  gradientBackground: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  contentContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 24,
+    paddingBottom: 48,
+  },
+  header: {
+    alignItems: 'center',
+    marginTop: 60,
+  },
+  headerText: {
+    color: '#1F2937',
+    marginTop: 16,
+    fontWeight: 'bold',
+  },
+  mainContent: {
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    gap: 16,
+  },
+  title: {
+    color: '#B91C1C',
+    textAlign: 'center',
+    fontSize: 36,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  subtitle: {
+    color: '#4B5563',
+    textAlign: 'center',
+    fontSize: 18,
+    lineHeight: 26,
+  },
+  footer: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  getStartedButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'center',
+    backgroundColor: '#B91C1C',
+    borderRadius: 50,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    width: '90%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  buttonPressed: {
+    transform: [{ scale: 0.96 }],
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  getStartedButtonText: {
+    backgroundColor: '#B91C1C',
+    color: '#FFFFFF',
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginRight: 12,
+    borderRadius: 50,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    width: '90%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
