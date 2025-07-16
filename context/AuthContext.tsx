@@ -2,8 +2,8 @@ import { router, useSegments } from 'expo-router';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
 
-const API_URL = process.env.API_URL;
-const TOKEN_KEY = process.env.JWT_SECRET;
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+const TOKEN_KEY = '5ad568770261481479d095153620edb5';
 
 interface AuthContextType {
   signIn: (data: any) => Promise<void>;
@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const { token, data: { user: userData } } = result;
-      
+
       await SecureStore.setItemAsync(TOKEN_KEY!, token);
       setUser(userData);
       router.replace('/home' as any);
