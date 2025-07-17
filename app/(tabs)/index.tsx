@@ -6,6 +6,7 @@ import Animated, {
   withSpring,
   withDelay,
 } from 'react-native-reanimated';
+import { useAuth } from '@/context/AuthContext';
 import { useEffect } from 'react';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +14,14 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
 export default function HomeScreen() {
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      router.replace('/home');
+    }
+  }, [user]);
+
   // Animation shared values
   const titleOpacity = useSharedValue(0);
   const titleTranslateY = useSharedValue(30);
@@ -24,17 +33,19 @@ export default function HomeScreen() {
 
   // Trigger animations on component mount
   useEffect(() => {
-    titleOpacity.value = withDelay(200, withSpring(1));
-    titleTranslateY.value = withDelay(200, withSpring(0));
+    if (!user) {
+      titleOpacity.value = withDelay(200, withSpring(1));
+      titleTranslateY.value = withDelay(200, withSpring(0));
 
-    subtitleOpacity.value = withDelay(400, withSpring(1));
-    subtitleTranslateY.value = withDelay(400, withSpring(0));
+      subtitleOpacity.value = withDelay(400, withSpring(1));
+      subtitleTranslateY.value = withDelay(400, withSpring(0));
 
-    buttonOpacity.value = withDelay(600, withSpring(1));
-    buttonTranslateY.value = withDelay(600, withSpring(0));
+      buttonOpacity.value = withDelay(600, withSpring(1));
+      buttonTranslateY.value = withDelay(600, withSpring(0));
 
-    iconScale.value = withDelay(0, withSpring(1, { damping: 12, stiffness: 100 }));
-  }, []);
+      iconScale.value = withDelay(0, withSpring(1, { damping: 12, stiffness: 100 }));
+    }
+  }, [user]);
 
   // Animated styles
   const titleAnimatedStyle = useAnimatedStyle(() => ({
@@ -59,6 +70,10 @@ export default function HomeScreen() {
   const handleGetStarted = () => {
     router.push('/sign');
   };
+
+  if (user) {
+    return null;
+  }
 
   return (
     <ThemedView style={styles.container}>
